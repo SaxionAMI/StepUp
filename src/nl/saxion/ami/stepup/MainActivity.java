@@ -5,6 +5,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.app.Activity;
 import android.content.Context;
 import android.util.FloatMath;
@@ -14,6 +15,9 @@ import android.view.Menu;
 public class MainActivity extends Activity implements SensorEventListener {
 	private SensorManager mSensorManager;
 	private Sensor mSensor;
+	private LowPassFilter filter;
+	
+	private long time;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -22,7 +26,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 		mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-
+		filter = new LowPassFilter(5, 2);
 	}
 
 	@Override
@@ -35,6 +39,12 @@ public class MainActivity extends Activity implements SensorEventListener {
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 		Log.v(getClass().toString(), "onSensorChanged");
+		float norm = norm(event);
+		
+		long now = SystemClock.elapsedRealtime();
+		Log.d(getClass().toString(), "Norm " + norm + ", Time " +  (now - time));
+		Log.d("", "difference " + (now - time));
+		time = now;
 	}
 
 	@Override
@@ -46,7 +56,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 	protected void onResume() {
 		super.onResume();
 		mSensorManager.registerListener(this, mSensor,
-				SensorManager.SENSOR_DELAY_NORMAL);
+				SensorManager.SENSOR_DELAY_GAME);
 	}
 
 	@Override
